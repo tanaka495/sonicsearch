@@ -1,0 +1,110 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SonicSearch - Debug版</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #e0f7fa;
+      text-align: center;
+      padding: 20px;
+    }
+    button {
+      font-size: 16px;
+      padding: 10px 20px;
+      margin: 10px;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      background-color: #00796b;
+    }
+    .bubble {
+      display: inline-block;
+      margin: 10px;
+      padding: 10px 15px;
+      background-color: #b2ebf2;
+      color: #004d40;
+      border-radius: 30px;
+      animation: float 3s ease-in-out infinite;
+    }
+    #log {
+      margin-top: 20px;
+      font-size: 14px;
+      background: #ffffffbb;
+      padding: 10px;
+      border-radius: 8px;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+  </style>
+</head>
+<body>
+  <h1>🎤 SonicSearch Debug版</h1>
+  <button onclick="startRecognition()">🎙️ 音声認識開始</button>
+  <button onclick="stopRecognition()">⛔ 音声認識終了</button>
+  <div id="bubbles"></div>
+  <div id="log"></div>
+
+  <script>
+    let recognition;
+    const logDiv = document.getElementById('log');
+    const bubblesDiv = document.getElementById('bubbles');
+
+    function log(message) {
+      const p = document.createElement('div');
+      p.textContent = message;
+      logDiv.appendChild(p);
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function startRecognition() {
+      if (!('webkitSpeechRecognition' in window)) {
+        log("このブラウザは音声認識に対応していません。");
+        return;
+      }
+      recognition = new webkitSpeechRecognition();
+      recognition.lang = 'ja-JP';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => log("🎙️ 音声認識開始");
+      recognition.onend = () => log("🛑 音声認識終了");
+      recognition.onerror = event => log("⚠️ エラー: " + event.error);
+
+      recognition.onresult = event => {
+        const transcript = event.results[0][0].transcript;
+        log("✅ 認識結果: " + transcript);
+        showBubbles(transcript);
+      };
+
+      recognition.start();
+    }
+
+    function stopRecognition() {
+      if (recognition) {
+        recognition.stop();
+        log("⛔ 停止要求を送信しました");
+      }
+    }
+
+    function showBubbles(text) {
+      bubblesDiv.innerHTML = '';
+      const words = text.split(/\s+/);
+      words.forEach(word => {
+        const div = document.createElement('div');
+        div.className = 'bubble';
+        div.textContent = word;
+        bubblesDiv.appendChild(div);
+      });
+    }
+  </script>
+</body>
+</html>
